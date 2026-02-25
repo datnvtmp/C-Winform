@@ -582,6 +582,9 @@ public partial class QLTK : Form
             if (flag) _socketServer.SendString(id, buildCmd());
         }
 
+        // AutoUseGiapLT (special case: sends command for both on/off states)
+        _socketServer.SendString(id, s.AutoUseGiapLT ? "15" : "16");
+
         // Complex settings with parameters
         if (s.AutoTrainEnabled) 
             _socketServer.SendString(id, Constants.BuildAutoTrainFull(s.MapId, s.MobTypeIndex));
@@ -594,6 +597,12 @@ public partial class QLTK : Form
 
         if (s.UseHpThreshold) 
             _socketServer.SendString(id, Constants.BuildSetMaxHp(s.HpThreshold));
+
+        if (s.checkMinHp)
+        {
+            string hp = string.IsNullOrWhiteSpace(s.minHp) ? "100000000" : s.minHp;
+            _socketServer.SendString(id, $"18|{hp}");
+        }
 
         // Text-based settings
         if (!string.IsNullOrWhiteSpace(s.SkillsText))
@@ -718,8 +727,12 @@ public partial class QLTK : Form
         if (GetCurrentAccount() == null) return;
         if (!checkMinHp.Checked) return; // ✅ Chỉ gửi khi checkbox được tích
 
-        _minHpDebounceTimer.Stop();
-        _minHpDebounceTimer.Start();
+        Account acc = GetCurrentAccount();
+        if (acc != null)
+        {
+            string hp = string.IsNullOrWhiteSpace(minHp.Text) ? "100000000" : minHp.Text;
+            _socketServer.SendString(acc.ID.ToString(), $"18|{hp}");
+        }
     }
 
     private async void checkMinHp_CheckedChanged(object sender, EventArgs e)
