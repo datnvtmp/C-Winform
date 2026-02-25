@@ -35,6 +35,7 @@ public partial class QLTK : Form
     private ConcurrentDictionary<string, string> _accountData = new();
     private ConcurrentDictionary<string, bool> _keepAliveState = new();
     private ConcurrentDictionary<string, DateTime> _lastActiveTime = new();
+    private ConcurrentDictionary<string, System.Threading.CancellationTokenSource> _reconnectTasks = new();
 
     private bool _isLoadingSettings = false;
     private AccountSettings _clipboardSettings = null;
@@ -233,8 +234,24 @@ public partial class QLTK : Form
             acc.Status = "Mất kết nối";
             acc.DataInGame = "Tự mở lại sau 5s...";
             _needRefresh = true;
-            await Task.Delay(5000);
-            await LoginProcess(acc);
+
+            // Tạo CancellationToken để có thể hủy task reconnect
+            var cts = new System.Threading.CancellationTokenSource();
+            _reconnectTasks[accountID] = cts;
+
+            try
+            {
+                await Task.Delay(5000, cts.Token);
+                await LoginProcess(acc);
+            }
+            catch (System.Threading.Tasks.TaskCanceledException)
+            {
+                Debug.WriteLine($"❌ Reconnect của {accountID} đã bị hủy (user login thủ công)");
+            }
+            finally
+            {
+                _reconnectTasks.TryRemove(accountID, out _);
+            }
             return;
         }
 
@@ -248,6 +265,9 @@ public partial class QLTK : Form
     // ─── Form events ───────────────────────────────────────────────────────────
     private void Form1_Load(object sender, EventArgs e)
     {
+        // Hiển thị version trên title bar
+        this.Text = $"QLTK - v{UpdateManager.Version}";
+
         dataGridView1.Columns["Auto"].DataPropertyName = "Auto";
         base.FormClosing += QLTK_FormClosing;
         dataGridView1.AutoGenerateColumns = false;
@@ -286,6 +306,15 @@ public partial class QLTK : Form
             if (parts.Length == 2) { width = int.Parse(parts[0].Trim()); height = int.Parse(parts[1].Trim()); }
         }
         catch { width = 250; height = 350; }
+
+        // Kiểm tra cập nhật khi khởi động
+        _ = CheckForUpdatesOnStartup();
+    }
+
+    private async Task CheckForUpdatesOnStartup()
+    {
+        //await Task.Delay(1000); // Đợi form load xong
+        await UpdateManager.CheckForUpdatesAsync(showNoUpdateMessage: false);
     }
 
     private void QLTK_FormClosing(object sender, FormClosingEventArgs e)
@@ -335,7 +364,7 @@ public partial class QLTK : Form
 
         string username = txtTaiKhoan.Text.Trim();
         string password = txtMatKhau.Text.Trim();
-        if (string.IsNullOrEmpty(username)) { MessageBox.Show("Nhập tài khoản"); return; }
+        if (string.IsNullOrEmpty(username)) { MessageBox.Show("Nhập tài khoản v0"); return; }
         if (string.IsNullOrEmpty(password)) { MessageBox.Show("Nhập mật khẩu"); return; }
 
         acc.UserName = username;
@@ -437,7 +466,25 @@ public partial class QLTK : Form
     {
         Account acc = GetCurrentAccount();
         if (acc == null) return;
+
         string id = acc.ID.ToString();
+
+        // Hủy task reconnect tự động (nếu đang chờ)
+        if (_reconnectTasks.TryRemove(id, out var cts))
+        {
+            cts.Cancel();
+            cts.Dispose();
+            Debug.WriteLine($"✅ Đã hủy reconnect tự động cho {id}");
+        }
+
+        // Nếu đã ON rồi thì không login nữa
+        if (acc.Status == "ON")
+        {
+            MessageBox.Show("Tài khoản đang online!", "Thông báo", 
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
         _keepAliveState[id] = true;
         _lastActiveTime[id] = DateTime.Now;
         await LoginProcess(acc);
@@ -763,7 +810,30 @@ public partial class QLTK : Form
 
     private async void CloseALl(object sender, EventArgs e)
     {
-        foreach (var item in _keepAliveState) _keepAliveState[item.Key] = false;
+        // Hủy tất cả task reconnect đang chờ
+        foreach (var kvp in _reconnectTasks.ToList())
+        {
+            if (_reconnectTasks.TryRemove(kvp.Key, out var cts))
+            {
+                cts.Cancel();
+                cts.Dispose();
+                Debug.WriteLine($"✅ Đã hủy reconnect tự động cho {kvp.Key}");
+            }
+        }
+
+        // Tắt tất cả và reset DataInGame
+        foreach (var item in _keepAliveState)
+        {
+            _keepAliveState[item.Key] = false;
+
+            var acc = _accountManager.GetAccount(item.Key);
+            if (acc != null)
+            {
+                acc.DataInGame = "";  // ← Reset DataInGame về rỗng
+            }
+        }
+
+        _needRefresh = true;
         _socketServer.BroadcastString("999");
         await Task.Delay(500);
         await Task.Run(() => _accountManager.SaveAccounts());
@@ -772,7 +842,22 @@ public partial class QLTK : Form
     private async void button7_Click(object sender, EventArgs e)
     {
         if (GetCurrentAccount() == null) { MessageBox.Show("Vui lòng chọn tài khoản!"); return; }
-        _keepAliveState[GetCurrentAccount().ID.ToString()] = false;
+
+        Account acc = GetCurrentAccount();
+        string id = acc.ID.ToString();
+
+        // Hủy task reconnect tự động (nếu đang chờ)
+        if (_reconnectTasks.TryRemove(id, out var cts))
+        {
+            cts.Cancel();
+            cts.Dispose();
+            Debug.WriteLine($"✅ Đã hủy reconnect tự động cho {id}");
+        }
+
+        _keepAliveState[id] = false;
+        acc.DataInGame = "";  // ← Reset DataInGame về rỗng
+        _needRefresh = true;
+
         await SendCommandAsync("999");
     }
 
