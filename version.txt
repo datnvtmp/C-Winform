@@ -1,4 +1,4 @@
-1.1.0
+1.2.0
 ✨ Tính năng mới:
 - Thêm hệ thống tự động cập nhật
 - Thêm nút kiểm tra phiên bản mới
