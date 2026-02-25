@@ -246,15 +246,12 @@ public partial class QLTK : Form
     }
 
     // ─── Form events ───────────────────────────────────────────────────────────
-    private async void Form1_Load(object sender, EventArgs e)
+    private void Form1_Load(object sender, EventArgs e)
     {
         dataGridView1.Columns["Auto"].DataPropertyName = "Auto";
         base.FormClosing += QLTK_FormClosing;
         dataGridView1.AutoGenerateColumns = false;
         dataGridView1.DataSource = _accountManager.Accounts;
-
-        // Kiểm tra cập nhật khi khởi động
-        await CheckForUpdatesOnStartupAsync();
 
         _isLoadingSettings = true;
         cmbServer.SelectedIndex = 0;
@@ -338,7 +335,7 @@ public partial class QLTK : Form
 
         string username = txtTaiKhoan.Text.Trim();
         string password = txtMatKhau.Text.Trim();
-        if (string.IsNullOrEmpty(username)) { MessageBox.Show("Nhập tài khoản đi cc"); return; }
+        if (string.IsNullOrEmpty(username)) { MessageBox.Show("Nhập tài khoản"); return; }
         if (string.IsNullOrEmpty(password)) { MessageBox.Show("Nhập mật khẩu"); return; }
 
         acc.UserName = username;
@@ -1022,95 +1019,6 @@ public partial class QLTK : Form
     {
         MessageBox.Show("HƯỚNG DẪN CHỨC NĂNG ID - SỐ LƯỢNG:\n\n- Điền ID vật phẩm và số lượng cần đạt.\n- Khi số lượng vật phẩm đạt đủ, nhân vật sẽ tự động thoát.\n- Nếu để trống ID hoặc số lượng, hệ thống sẽ không thực hiện hành động gì.\n",
             "Hướng dẫn ID - SL", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
-    }
-
-    // ─── Update Checker ────────────────────────────────────────────────────────
-    private async Task CheckForUpdatesOnStartupAsync()
-    {
-        try
-        {
-            Debug.WriteLine("🔍 Bắt đầu kiểm tra update...");
-            var updateInfo = await UpdateChecker.CheckForUpdatesAsync();
-
-            Debug.WriteLine($"📦 Version hiện tại: {updateInfo.CurrentVersion}");
-            Debug.WriteLine($"🆕 Version mới nhất: {updateInfo.LatestVersion ?? "N/A"}");
-            Debug.WriteLine($"✅ Có update: {updateInfo.IsUpdateAvailable}");
-
-            if (updateInfo.IsUpdateAvailable)
-            {
-                var result = MessageBox.Show(
-                    $"Phát hiện phiên bản mới {updateInfo.LatestVersion}!\n" +
-                    $"Phiên bản hiện tại: {updateInfo.CurrentVersion}\n\n" +
-                    "Bạn có muốn xem chi tiết và cập nhật không?",
-                    "Có bản cập nhật mới",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Information
-                );
-
-                if (result == DialogResult.Yes)
-                {
-                    var frmUpdate = new FrmUpdate(updateInfo);
-                    frmUpdate.ShowDialog();
-                }
-            }
-            else
-            {
-                Debug.WriteLine("ℹ️ Không có bản cập nhật mới");
-            }
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"❌ Lỗi kiểm tra update: {ex.Message}");
-            Debug.WriteLine($"❌ StackTrace: {ex.StackTrace}");
-            MessageBox.Show($"DEBUG: Lỗi kiểm tra update\n{ex.Message}", "Debug", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-        }
-    }
-
-    private async void btnCheckUpdate_Click(object sender, EventArgs e)
-    {
-        var btn = sender as Button;
-        if (btn != null)
-        {
-            btn.Enabled = false;
-            btn.Text = "Đang kiểm tra...";
-        }
-
-        try
-        {
-            var updateInfo = await UpdateChecker.CheckForUpdatesAsync();
-
-            if (updateInfo.IsUpdateAvailable)
-            {
-                var frmUpdate = new FrmUpdate(updateInfo);
-                frmUpdate.ShowDialog();
-            }
-            else
-            {
-                MessageBox.Show(
-                    $"Bạn đang sử dụng phiên bản mới nhất!\n\nPhiên bản hiện tại: {updateInfo.CurrentVersion}",
-                    "Không có cập nhật",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information
-                );
-            }
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show(
-                $"Không thể kiểm tra cập nhật:\n{ex.Message}",
-                "Lỗi",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Error
-            );
-        }
-        finally
-        {
-            if (btn != null)
-            {
-                btn.Enabled = true;
-                btn.Text = "Kiểm tra cập nhật";
-            }
-        }
     }
 
     // ─── Empty / stub handlers ─────────────────────────────────────────────────
