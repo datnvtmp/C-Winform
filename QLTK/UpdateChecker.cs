@@ -10,8 +10,8 @@ namespace QLTK
 {
     public class UpdateChecker
     {
-        private const string VERSION_URL = "https://raw.githubusercontent.com/datrivtmp/C-Winform/main/version.txt";
-        private const string DOWNLOAD_URL = "https://github.com/datrivtmp/C-Winform/releases/latest/download/QLTK.exe";
+        private const string VERSION_URL = "https://raw.githubusercontent.com/datnvtmp/C-Winform/main/version.txt";
+        private const string DOWNLOAD_URL = "https://github.com/datnvtmp/C-Winform/releases/latest/download/QLTK.exe";
 
         public static string CurrentVersion
         {
@@ -26,11 +26,15 @@ namespace QLTK
         {
             try
             {
+                Debug.WriteLine($"🌐 Checking URL: {VERSION_URL}");
+
                 using (var client = new HttpClient())
                 {
                     client.Timeout = TimeSpan.FromSeconds(10);
-                    
+
                     string content = await client.GetStringAsync(VERSION_URL);
+                    Debug.WriteLine($"📄 Content received: {content.Substring(0, Math.Min(100, content.Length))}...");
+
                     var lines = content.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
                     if (lines.Length >= 2)
@@ -38,8 +42,12 @@ namespace QLTK
                         string latestVersion = lines[0].Trim();
                         string changelog = string.Join("\n", lines, 1, lines.Length - 1);
 
+                        Debug.WriteLine($"🔢 Latest version: {latestVersion}");
+                        Debug.WriteLine($"🔢 Current version: {CurrentVersion}");
+
                         if (IsNewerVersion(latestVersion, CurrentVersion))
                         {
+                            Debug.WriteLine("✅ Update available!");
                             return new UpdateInfo
                             {
                                 IsUpdateAvailable = true,
@@ -49,12 +57,17 @@ namespace QLTK
                                 DownloadUrl = DOWNLOAD_URL
                             };
                         }
+                        else
+                        {
+                            Debug.WriteLine("ℹ️ Already up to date");
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Lỗi kiểm tra update: {ex.Message}");
+                Debug.WriteLine($"❌ Lỗi kiểm tra update: {ex.Message}");
+                Debug.WriteLine($"❌ StackTrace: {ex.StackTrace}");
             }
 
             return new UpdateInfo

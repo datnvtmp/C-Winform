@@ -338,7 +338,7 @@ public partial class QLTK : Form
 
         string username = txtTaiKhoan.Text.Trim();
         string password = txtMatKhau.Text.Trim();
-        if (string.IsNullOrEmpty(username)) { MessageBox.Show("Nhập tài khoản"); return; }
+        if (string.IsNullOrEmpty(username)) { MessageBox.Show("Nhập tài khoản đi cc"); return; }
         if (string.IsNullOrEmpty(password)) { MessageBox.Show("Nhập mật khẩu"); return; }
 
         acc.UserName = username;
@@ -1029,7 +1029,12 @@ public partial class QLTK : Form
     {
         try
         {
+            Debug.WriteLine("🔍 Bắt đầu kiểm tra update...");
             var updateInfo = await UpdateChecker.CheckForUpdatesAsync();
+
+            Debug.WriteLine($"📦 Version hiện tại: {updateInfo.CurrentVersion}");
+            Debug.WriteLine($"🆕 Version mới nhất: {updateInfo.LatestVersion ?? "N/A"}");
+            Debug.WriteLine($"✅ Có update: {updateInfo.IsUpdateAvailable}");
 
             if (updateInfo.IsUpdateAvailable)
             {
@@ -1048,10 +1053,16 @@ public partial class QLTK : Form
                     frmUpdate.ShowDialog();
                 }
             }
+            else
+            {
+                Debug.WriteLine("ℹ️ Không có bản cập nhật mới");
+            }
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Lỗi kiểm tra update: {ex.Message}");
+            Debug.WriteLine($"❌ Lỗi kiểm tra update: {ex.Message}");
+            Debug.WriteLine($"❌ StackTrace: {ex.StackTrace}");
+            MessageBox.Show($"DEBUG: Lỗi kiểm tra update\n{ex.Message}", "Debug", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
     }
 
