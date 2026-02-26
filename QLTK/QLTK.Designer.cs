@@ -200,6 +200,9 @@ partial class QLTK
             this.label19 = new System.Windows.Forms.Label();
             this.MobLoaiTru = new System.Windows.Forms.TextBox();
             this.ConFig = new System.Windows.Forms.TabPage();
+            this.SaveTimeNextMap = new System.Windows.Forms.Button();
+            this.TimeNextMap = new System.Windows.Forms.MaskedTextBox();
+            this.label21 = new System.Windows.Forms.Label();
             this.button17 = new System.Windows.Forms.Button();
             this.maskedTextBox1 = new System.Windows.Forms.MaskedTextBox();
             this.label14 = new System.Windows.Forms.Label();
@@ -283,9 +286,6 @@ partial class QLTK
             this.label11 = new System.Windows.Forms.Label();
             this.Zone = new System.Windows.Forms.NumericUpDown();
             this.KSGold = new System.Windows.Forms.TabControl();
-            this.label21 = new System.Windows.Forms.Label();
-            this.TimeNextMap = new System.Windows.Forms.MaskedTextBox();
-            this.SaveTimeNextMap = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numThread)).BeginInit();
@@ -857,6 +857,34 @@ partial class QLTK
             this.ConFig.TabIndex = 3;
             this.ConFig.Text = "ConFig+Proxy";
             this.ConFig.UseVisualStyleBackColor = true;
+            // 
+            // SaveTimeNextMap
+            // 
+            this.SaveTimeNextMap.Location = new System.Drawing.Point(264, 258);
+            this.SaveTimeNextMap.Name = "SaveTimeNextMap";
+            this.SaveTimeNextMap.Size = new System.Drawing.Size(60, 35);
+            this.SaveTimeNextMap.TabIndex = 34;
+            this.SaveTimeNextMap.Text = "Lưu";
+            this.SaveTimeNextMap.UseVisualStyleBackColor = true;
+            this.SaveTimeNextMap.Click += new System.EventHandler(this.SaveTimeNextMap_Click);
+            // 
+            // TimeNextMap
+            // 
+            this.TimeNextMap.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F);
+            this.TimeNextMap.Location = new System.Drawing.Point(126, 264);
+            this.TimeNextMap.Name = "TimeNextMap";
+            this.TimeNextMap.Size = new System.Drawing.Size(108, 23);
+            this.TimeNextMap.TabIndex = 33;
+            // 
+            // label21
+            // 
+            this.label21.AutoSize = true;
+            this.label21.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F);
+            this.label21.Location = new System.Drawing.Point(20, 265);
+            this.label21.Name = "label21";
+            this.label21.Size = new System.Drawing.Size(100, 18);
+            this.label21.TabIndex = 32;
+            this.label21.Text = "TimeNextMap";
             // 
             // button17
             // 
@@ -1588,6 +1616,7 @@ partial class QLTK
             this.nechar.TabIndex = 38;
             this.nechar.Text = "Né char";
             this.nechar.UseVisualStyleBackColor = true;
+            this.nechar.CheckedChanged += new System.EventHandler(this.nechar_CheckedChanged);
             // 
             // label18
             // 
@@ -1986,34 +2015,6 @@ partial class QLTK
             this.KSGold.Size = new System.Drawing.Size(630, 392);
             this.KSGold.TabIndex = 17;
             this.KSGold.SelectedIndexChanged += new System.EventHandler(this.tabControl1_SelectedIndexChanged);
-            // 
-            // label21
-            // 
-            this.label21.AutoSize = true;
-            this.label21.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F);
-            this.label21.Location = new System.Drawing.Point(20, 265);
-            this.label21.Name = "label21";
-            this.label21.Size = new System.Drawing.Size(100, 18);
-            this.label21.TabIndex = 32;
-            this.label21.Text = "TimeNextMap";
-            // 
-            // TimeNextMap
-            // 
-            this.TimeNextMap.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F);
-            this.TimeNextMap.Location = new System.Drawing.Point(126, 264);
-            this.TimeNextMap.Name = "TimeNextMap";
-            this.TimeNextMap.Size = new System.Drawing.Size(108, 23);
-            this.TimeNextMap.TabIndex = 33;
-            // 
-            // SaveTimeNextMap
-            // 
-            this.SaveTimeNextMap.Location = new System.Drawing.Point(264, 258);
-            this.SaveTimeNextMap.Name = "SaveTimeNextMap";
-            this.SaveTimeNextMap.Size = new System.Drawing.Size(60, 35);
-            this.SaveTimeNextMap.TabIndex = 34;
-            this.SaveTimeNextMap.Text = "Lưu";
-            this.SaveTimeNextMap.UseVisualStyleBackColor = true;
-            this.SaveTimeNextMap.Click += new System.EventHandler(this.SaveTimeNextMap_Click);
             // 
             // QLTK
             // 

@@ -81,7 +81,7 @@ public partial class QLTK : Form
             if (acc != null)
             {
                 string hp = string.IsNullOrWhiteSpace(minHp.Text) ? "100000000" : minHp.Text;
-                _socketServer.SendString(acc.ID.ToString(), $"18|{hp}");
+                _socketServer.SendString(acc.ID.ToString(), Constants.BuildSetMinHp(hp));
             }
         };
     }
@@ -322,7 +322,7 @@ public partial class QLTK : Form
         try
         {
             _keepAliveState.Clear();
-            _socketServer?.BroadcastString("999");
+            _socketServer?.BroadcastString(Constants.BuildCloseAll());
             foreach (Account account in _accountManager.Accounts)
             {
                 try { _processManager.KillProcess(account.ID.ToString()); } catch { }
@@ -583,7 +583,9 @@ public partial class QLTK : Form
         }
 
         // AutoUseGiapLT (special case: sends command for both on/off states)
-        _socketServer.SendString(id, s.AutoUseGiapLT ? "15" : "16");
+        _socketServer.SendString(id, s.AutoUseGiapLT 
+            ? Constants.BuildAutoGLTStart()
+            : Constants.BuildAutoGLTStop());
 
         // Complex settings with parameters
         if (s.AutoTrainEnabled) 
@@ -601,8 +603,12 @@ public partial class QLTK : Form
         if (s.checkMinHp)
         {
             string hp = string.IsNullOrWhiteSpace(s.minHp) ? "100000000" : s.minHp;
-            _socketServer.SendString(id, $"18|{hp}");
+            _socketServer.SendString(id, Constants.BuildSetMinHp(hp));
         }
+
+        // Auto Ne Character
+        if (s.nechar && !string.IsNullOrWhiteSpace(s.character))
+            _socketServer.SendString(id, Constants.BuildAutoNeChar(s.character));
 
         // Text-based settings
         if (!string.IsNullOrWhiteSpace(s.SkillsText))
@@ -662,20 +668,24 @@ public partial class QLTK : Form
     {
         int idMap = int.Parse(MapId.SelectedItem.ToString().Split('.')[0].Trim());
         int mobType = MobTypeIndex.SelectedIndex;
-        string cmd = AutoTrainEnabled.Checked ? $"2|{idMap}|{mobType}" : "3";
+        string cmd = AutoTrainEnabled.Checked 
+            ? Constants.BuildAutoTrainFull(idMap, mobType)
+            : Constants.BuildStopAutoTrain();
         await SendCommandAsync(cmd, saveSettings: true);
     }
 
     private async void checkBox8_CheckedChanged(object sender, EventArgs e)
     {
-        string cmd = AutoZoneEnabled.Checked ? $"7|{Zone.Value}" : "8";
+        string cmd = AutoZoneEnabled.Checked 
+            ? Constants.BuildSetZoneId((int)Zone.Value)
+            : Constants.BuildResetZoneId();
         await SendCommandAsync(cmd, saveSettings: true);
     }
 
     private async void Zone_ValueChanged(object sender, EventArgs e)
     {
         if (AutoZoneEnabled.Checked)
-            await SendCommandAsync($"7|{Zone.Value}");
+            await SendCommandAsync(Constants.BuildSetZoneId((int)Zone.Value));
     }
 
     // ─── Event handlers – Buffs ────────────────────────────────────────────────
@@ -688,7 +698,7 @@ public partial class QLTK : Form
         string cmd;
         if (cb.Checked)
         {
-            cmd = $"9|{tag}";
+            cmd = $"{Constants.CMD_AUTO_ITEM}|{tag}";
         }
         else
         {
@@ -701,14 +711,16 @@ public partial class QLTK : Form
 
     private async void Skill(object sender, EventArgs e)
     {
-        string cmd = $"11|{string.Join("|", SkillsText.Text.Split(','))}";
+        string cmd = Constants.BuildHandleSkill(SkillsText.Text);
         await SendCommandAsync(cmd, saveSettings: true);
     }
 
     private async void checkHp_CheckedChanged(object sender, EventArgs e)
     {
         string maxhp = string.IsNullOrWhiteSpace(HpThreshold.Text) ? "0" : HpThreshold.Text;
-        string cmd = UseHpThreshold.Checked ? $"17|{maxhp}" : "17|0";
+        string cmd = UseHpThreshold.Checked 
+            ? Constants.BuildSetMaxHp(maxhp)
+            : Constants.BuildSetMaxHp("0");
         await SendCommandAsync(cmd, saveSettings: true);
     }
 
@@ -717,7 +729,7 @@ public partial class QLTK : Form
         if (UseHpThreshold.Checked)
         {
             string maxhp = string.IsNullOrWhiteSpace(HpThreshold.Text) ? "0" : HpThreshold.Text;
-            await SendCommandAsync($"17|{maxhp}");
+            await SendCommandAsync(Constants.BuildSetMaxHp(maxhp));
         }
     }
 
@@ -725,13 +737,13 @@ public partial class QLTK : Form
     {
         if (_isLoadingSettings) return;
         if (GetCurrentAccount() == null) return;
-        if (!checkMinHp.Checked) return; // ✅ Chỉ gửi khi checkbox được tích
+        if (!checkMinHp.Checked) return;
 
         Account acc = GetCurrentAccount();
         if (acc != null)
         {
             string hp = string.IsNullOrWhiteSpace(minHp.Text) ? "100000000" : minHp.Text;
-            _socketServer.SendString(acc.ID.ToString(), $"18|{hp}");
+            _socketServer.SendString(acc.ID.ToString(), Constants.BuildSetMinHp(hp));
         }
     }
 
@@ -741,15 +753,18 @@ public partial class QLTK : Form
         if (GetCurrentAccount() == null) return;
 
         string hp = string.IsNullOrWhiteSpace(minHp.Text) ? "100000000" : minHp.Text;
-        string cmd = checkMinHp.Checked ? $"18|{hp}" : "18|100000000"; // ← Tắt = 0, không phải MaxValue
-
-        await SendCommandAsync(cmd, saveSettings: true); // ← Theo chuẩn
+        string cmd = checkMinHp.Checked 
+            ? Constants.BuildSetMinHp(hp)
+            : Constants.BuildSetMinHp("100000000");
+        await SendCommandAsync(cmd, saveSettings: true);
     }
 
     // ─── Event handlers – Misc checkboxes ─────────────────────────────────────
     private async void checkBox1_CheckedChanged(object sender, EventArgs e)   // AutoUseGiapLT
     {
-        string cmd = AutoUseGiapLT.Checked ? "15" : "16";
+        string cmd = AutoUseGiapLT.Checked 
+            ? Constants.BuildAutoGLTStart()
+            : Constants.BuildAutoGLTStop();
         await SendCommandAsync(cmd, saveSettings: true);
     }
 
@@ -847,7 +862,7 @@ public partial class QLTK : Form
         }
 
         _needRefresh = true;
-        _socketServer.BroadcastString("999");
+        _socketServer.BroadcastString(Constants.BuildCloseAll());
         await Task.Delay(500);
         await Task.Run(() => _accountManager.SaveAccounts());
     }
@@ -871,14 +886,16 @@ public partial class QLTK : Form
         acc.DataInGame = "";  // ← Reset DataInGame về rỗng
         _needRefresh = true;
 
-        await SendCommandAsync("999");
+        await SendCommandAsync(Constants.BuildCloseAll());
     }
 
     private async void SaveFarmBoss_Click(object sender, EventArgs e)
     {
-        string qty = QuantityGTS.SelectedItem.ToString();
-        string rev = FarmReverseGTS.Checked ? "1" : "0";
-        string cmd = AutoBossNapa.Checked ? $"13|{qty}|{rev}" : "14";
+        int qty = int.Parse(QuantityGTS.SelectedItem.ToString());
+        int rev = FarmReverseGTS.Checked ? 1 : 0;
+        string cmd = AutoBossNapa.Checked 
+            ? Constants.BuildAutoBossNapa(qty, rev)
+            : Constants.BuildStopBossNapa();
         await SendCommandAsync(cmd, saveSettings: true);
     }
 
@@ -969,26 +986,26 @@ public partial class QLTK : Form
         await SendCommandAsync(cmd, saveSettings: true);
     }
 
-    private async void button15_Click_1(object sender, EventArgs e) => await SendCommandAsync("27"); // Hành trang
-    private async void button19_Click(object sender, EventArgs e) => await SendCommandAsync("28"); // Rương đồ
+    private async void button15_Click_1(object sender, EventArgs e) => await SendCommandAsync(Constants.CMD_SHOW_BAG.ToString()); // Hành trang
+    private async void button19_Click(object sender, EventArgs e) => await SendCommandAsync(Constants.CMD_SHOW_BOX.ToString()); // Rương đồ
 
     private async void SaveListIDMob_Click(object sender, EventArgs e)
     {
         string list = string.Join("|", ListIDMob.Text.Split(','));
         MessageBox.Show(list);
-        await SendCommandAsync($"29|{list}", saveSettings: true);
+        await SendCommandAsync(Constants.BuildListIDMob(list), saveSettings: true);
     }
 
     private async void SaveIDSL_Click(object sender, EventArgs e)
     {
-        string cmd = $"37|{string.Join("|", IDSL.Text.Trim().Split('-'))}";
+        string cmd = Constants.BuildHandleIDSL(IDSL.Text.Trim());
         await SendCommandAsync(cmd, saveSettings: true);
     }
 
     private async void button20_Click(object sender, EventArgs e)
     {
         if (GetCurrentAccount() == null) { MessageBox.Show("Vui lòng chọn tài khoản!"); return; }
-        await SendCommandAsync("99|" + MobLoaiTru.Text);
+        await SendCommandAsync(Constants.BuildMobLoaiTru(MobLoaiTru.Text));
     }
 
     // ─── Copy / Paste Config ───────────────────────────────────────────────────
@@ -1177,6 +1194,17 @@ public partial class QLTK : Form
             return;
         }
 
-        _socketServer.BroadcastString($"888|{seconds}");
+        _socketServer.BroadcastString(Constants.BuildSetTimeNextMap(seconds));
+    }
+
+    private async void nechar_CheckedChanged(object sender, EventArgs e)
+    {
+        if (_isLoadingSettings) return;
+        if (GetCurrentAccount() == null) { MessageBox.Show("Vui lòng chọn tài khoản!"); return; }
+
+        // Nếu tích: gửi danh sách tên, nếu bỏ tích: gửi empty (method sẽ return "31|0")
+        string charList = nechar.Checked ? character.Text : "";
+        string cmd = Constants.BuildAutoNeChar(charList);
+        await SendCommandAsync(cmd, saveSettings: true);
     }
 }

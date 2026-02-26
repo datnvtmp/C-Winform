@@ -14,7 +14,7 @@ public class UpdateManager
 {
     private const string GITHUB_REPO_OWNER = "datnvtmp";
     private const string GITHUB_REPO_NAME = "C-Winform";
-    private const string CURRENT_VERSION = "1.2.0"; // ← Thay đổi version ở đây khi có bản mới
+    private const string CURRENT_VERSION = "1.2.1"; // ← Thay đổi version ở đây khi có bản mới
 
     public static string Version => CURRENT_VERSION; // ← Public property để lấy version
 

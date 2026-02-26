@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace QLTK;
 
 public static class Constants
@@ -95,7 +97,9 @@ public static class Constants
 
 	public const int CMD_AUTO_FLAG = 32;
 
-	public const int CMD_AUTO_GOBACK = 35;
+    public const int CMD_AUTO_NE_CHAR = 31;
+
+    public const int CMD_AUTO_GOBACK = 35;
 
 	public const int CMD_AUTO_OFF_KHI_DU_SO_LUONG = 37;
 
@@ -103,75 +107,98 @@ public static class Constants
 
 	public const int CMD_ATTACK_FULL = 41;
 
+	public const int CMD_MOB_LOAI_TRU = 99;
+
+	public const int CMD_SET_TIME_NEXT_MAP = 888;
+
+	public const int CMD_CLOSE_ALL = 999;
+
 	public static string BuildAutoTrainFull(int mapId, int mobType)
 	{
-		return $"{2}|{mapId}|{mobType}";
+		return $"{CMD_AUTO_TRAIN_FULL}|{mapId}|{mobType}";
 	}
 
 	public static string BuildStopAutoTrain()
 	{
-		return 3.ToString();
+		return CMD_STOP_AUTO_TRAIN.ToString();
 	}
 
 	public static string BuildSetZoneId(int zoneId)
 	{
-		return $"{7}|{zoneId}";
+		return $"{CMD_SET_ZONE_ID}|{zoneId}";
 	}
 
 	public static string BuildResetZoneId()
 	{
-		return 8.ToString();
+		return CMD_RESET_ZONE_ID.ToString();
 	}
 
 	public static string BuildAutoItem(string name, int id, int iconId)
 	{
-		return $"{9}|{name}|{id}|{iconId}";
+		return $"{CMD_AUTO_ITEM}|{name}|{id}|{iconId}";
 	}
 
 	public static string BuildStopAutoItem(int itemId)
 	{
-		return $"{10}|{itemId}";
+		return $"{CMD_STOP_AUTO_ITEM}|{itemId}";
 	}
+	public static string BuildAutoNeChar(string characterNames)
+	{
+		if (string.IsNullOrWhiteSpace(characterNames))
+			return $"{CMD_AUTO_NE_CHAR}";
 
+		// Lọc và trim từng tên, loại bỏ empty entries (chấp nhận cả | và ,)
+		var validNames = characterNames
+			.Split(new[] { '|', ',' }, System.StringSplitOptions.RemoveEmptyEntries)
+			.Select(name => name.Trim())
+			.Where(name => !string.IsNullOrWhiteSpace(name))
+			.ToList();
+
+		// Nếu sau khi lọc không còn tên nào hợp lệ
+		if (validNames.Count == 0)
+			return $"{CMD_AUTO_NE_CHAR}";
+
+		return $"{CMD_AUTO_NE_CHAR}|{string.Join("|", validNames)}";
+	}
 	public static string BuildHandleSkill(string skillsCommaSeparated)
 	{
 		if (string.IsNullOrWhiteSpace(skillsCommaSeparated))
 		{
-			return $"{11}";
+			return $"{CMD_HANDLE_SKILL}";
 		}
 		string arg = string.Join("|", skillsCommaSeparated.Split(','));
-		return $"{11}|{arg}";
+		return $"{CMD_HANDLE_SKILL}|{arg}";
 	}
 
 	public static string BuildHandleIDSL(string skillsCommaSeparated)
 	{
 		string arg = string.Join("|", skillsCommaSeparated.Split('-'));
-		return $"{37}|{arg}";
+		return $"{CMD_AUTO_OFF_KHI_DU_SO_LUONG}|{arg}";
 	}
 
 	public static string BuildStopSkill(int skillId)
 	{
-		return $"{12}|{skillId}";
+		return $"{CMD_STOP_SKILL}|{skillId}";
 	}
 
 	public static string BuildAutoBossNapa(int quantity, int farmLast)
 	{
-		return $"{13}|{quantity}|{farmLast}";
+		return $"{CMD_AUTO_BOSS_NAPA}|{quantity}|{farmLast}";
 	}
 
 	public static string BuildStopBossNapa()
 	{
-		return 14.ToString();
+		return CMD_STOP_BOSS_NAPA.ToString();
 	}
 
 	public static string BuildAutoGLTStart()
 	{
-		return 15.ToString();
+		return CMD_AUTO_GLT_START.ToString();
 	}
 
 	public static string BuildAutoGLTStop()
 	{
-		return 16.ToString();
+		return CMD_AUTO_GLT_STOP.ToString();
 	}
 
 	public static string BuildSetMaxHp(string maxHp)
@@ -180,7 +207,7 @@ public static class Constants
 		{
 			maxHp = "0";
 		}
-		return $"{17}|{maxHp}";
+		return $"{CMD_SET_MAX_HP}|{maxHp}";
 	}
 
 	public static string BuildSetMinHp(string minHp)
@@ -189,7 +216,7 @@ public static class Constants
 		{
 			minHp = long.MaxValue.ToString();
 		}
-		return $"{18}|{minHp}";
+		return $"{CMD_SET_MIN_HP}|{minHp}";
 	}
 
 	public static string BuildCuongNoCommand()
@@ -219,67 +246,82 @@ public static class Constants
 
 	public static string BuildListIDItems(string listItems)
 	{
-		return $"{21}|{listItems}";
+		return $"{CMD_LIST_USE_ITEM}|{listItems}";
 	}
 
 	public static string BuildTrashItemIds(string listItems)
 	{
-		return $"{22}|{listItems}";
+		return $"{CMD_LIST_TRASH_ITEM}|{listItems}";
 	}
 
 	public static string BuildListIDMob(string ListIDMob)
 	{
-		return $"{29}|{ListIDMob}";
+		return $"{CMD_LIST_MOD_ID}|{ListIDMob}";
 	}
 
 	public static string BuildAutoPorata()
 	{
-		return $"{23}";
+		return $"{CMD_AUTO_PORATA}";
 	}
 
 	public static string BuildAutoUpMapPrivate()
 	{
-		return $"{40}";
+		return $"{CMD_AUTO_UP_MAP_PRIVATE}";
 	}
 
 	public static string BuildAutoSKH()
 	{
-		return $"{30}";
+		return $"{CMD_AUTO_SKH}";
 	}
 
 	public static string BuildAttackFull()
 	{
-		return $"{41}";
+		return $"{CMD_ATTACK_FULL}";
 	}
 
 	public static string BuildAutoGB()
 	{
-		return $"{35}";
+		return $"{CMD_AUTO_GOBACK}";
 	}
 
 	public static string BuildAutoFlag()
 	{
-		return $"{32}";
+		return $"{CMD_AUTO_FLAG}";
 	}
 
 	public static string BuildAutoLogin()
 	{
-		return $"{24}";
+		return $"{CMD_AUTO_LOGIN}";
 	}
 
 	public static string BuildAutoUseTDLT()
 	{
-		return $"{25}";
+		return $"{CMD_AUTO_USE_TDLT}";
 	}
 
 	public static string BuildAutoBuyTDLT()
 	{
-		return $"{26}";
+		return $"{CMD_AUTO_BUY_TDLT}";
 	}
 
 	public static string BuildTrainDontMove()
 	{
-		return $"{19}";
+		return $"{CMD_TRAIN_DONT_MOVE}";
+	}
+
+	public static string BuildMobLoaiTru(string mobType)
+	{
+		return $"{CMD_MOB_LOAI_TRU}|{mobType}";
+	}
+
+	public static string BuildSetTimeNextMap(int seconds)
+	{
+		return $"{CMD_SET_TIME_NEXT_MAP}|{seconds}";
+	}
+
+	public static string BuildCloseAll()
+	{
+		return CMD_CLOSE_ALL.ToString();
 	}
 
 	public static string GetCommandDescription(int commandCode)
@@ -289,24 +331,44 @@ public static class Constants
 		}
 		string result = commandCode switch
 		{
-			1 => "Login", 
-			2 => "Auto Train Full", 
-			3 => "Stop Auto Train", 
-			5 => "Set Mob Type", 
-			6 => "Set Map ID", 
-			7 => "Set Zone ID", 
-			8 => "Reset Zone ID", 
-			9 => "Auto Item", 
-			10 => "Stop Auto Item", 
-			11 => "Handle Skill", 
-			12 => "Stop Skill", 
-			13 => "Auto Boss Napa", 
-			14 => "Stop Boss Napa", 
-			15 => "Auto GLT Start", 
-			16 => "Auto GLT Stop", 
-			17 => "Set Max HP", 
-			18 => "Set Min HP", 
-			_ => $"Unknown Command ({commandCode})", 
+			CMD_LOGIN => "Login",
+			CMD_AUTO_TRAIN_FULL => "Auto Train Full",
+			CMD_STOP_AUTO_TRAIN => "Stop Auto Train",
+			CMD_SET_MOB_TYPE => "Set Mob Type",
+			CMD_SET_MAP_ID => "Set Map ID",
+			CMD_SET_ZONE_ID => "Set Zone ID",
+			CMD_RESET_ZONE_ID => "Reset Zone ID",
+			CMD_AUTO_ITEM => "Auto Item",
+			CMD_STOP_AUTO_ITEM => "Stop Auto Item",
+			CMD_HANDLE_SKILL => "Handle Skill",
+			CMD_STOP_SKILL => "Stop Skill",
+			CMD_AUTO_BOSS_NAPA => "Auto Boss Napa",
+			CMD_STOP_BOSS_NAPA => "Stop Boss Napa",
+			CMD_AUTO_GLT_START => "Auto GLT Start",
+			CMD_AUTO_GLT_STOP => "Auto GLT Stop",
+			CMD_SET_MAX_HP => "Set Max HP",
+			CMD_SET_MIN_HP => "Set Min HP",
+			CMD_TRAIN_DONT_MOVE => "Train Don't Move",
+			CMD_LIST_USE_ITEM => "List Use Item",
+			CMD_LIST_TRASH_ITEM => "List Trash Item",
+			CMD_AUTO_PORATA => "Auto Porata",
+			CMD_AUTO_LOGIN => "Auto Login",
+			CMD_AUTO_USE_TDLT => "Auto Use TDLT",
+			CMD_AUTO_BUY_TDLT => "Auto Buy TDLT",
+			CMD_SHOW_BAG => "Show Bag",
+			CMD_SHOW_BOX => "Show Box",
+			CMD_LIST_MOD_ID => "List Mob ID",
+			CMD_AUTO_SKH => "Auto SKH",
+			CMD_AUTO_NE_CHAR => "Auto Ne Character",
+			CMD_AUTO_FLAG => "Auto Flag",
+			CMD_AUTO_GOBACK => "Auto GoBack",
+			CMD_AUTO_OFF_KHI_DU_SO_LUONG => "Auto Off When Enough",
+			CMD_AUTO_UP_MAP_PRIVATE => "Auto Up Map Private",
+			CMD_ATTACK_FULL => "Attack Full",
+			CMD_MOB_LOAI_TRU => "Mob Loai Tru Filter",
+			CMD_SET_TIME_NEXT_MAP => "Set Time Next Map",
+			CMD_CLOSE_ALL => "Close All",
+			_ => $"Unknown Command ({commandCode})",
 		};
 		if (1 == 0)
 		{
